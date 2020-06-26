@@ -152,7 +152,7 @@ class ViewPage extends Component {
 
         liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: ("https://share.cardbo.info") });
+                liff.login({ redirectUri: ("https://share.cardbo.info/") });
             }
         }).then(
             () => liff.getOS()
@@ -162,7 +162,7 @@ class ViewPage extends Component {
             () => liff.getProfile()
         ).then((profile) => {
             if (!profile.userId) {
-                window.alert("USER ID ERROR!");
+                console.log("USER ID ERROR!");
             } else {
                 userData = {
                     userName: profile.displayName,
@@ -176,6 +176,7 @@ class ViewPage extends Component {
                         userImage: profile.pictureUrl,
                     }
                 });
+                console.log(profile.pictureUrl)
             }
         }).then(() => {
             this.setState({
@@ -184,7 +185,7 @@ class ViewPage extends Component {
         }).then(() => {
 
             fetch('/api/get-offer-id/' + id).catch(function (error) {
-                window.alert("[Error] " + error);
+                console.log("[Error] " + error);
             }).then(
                 res => res.json()
             ).then((data) => {
@@ -211,7 +212,7 @@ class ViewPage extends Component {
             });
 
             fetch('/api/get-comment-id/' + id).catch(function (error) {
-                window.alert("[Error] " + error);
+                console.log("[Error] " + error);
             }).then(
                 res => res.json()
             ).then((data) => {
@@ -293,7 +294,7 @@ class ViewPage extends Component {
                 'Content-Type': 'application/json'
             })
         }).catch(function (error) {
-            window.alert("[Error] " + error);
+            console.log("[Error] " + error);
         })
         // .then(
         //     res => res.json()
@@ -348,7 +349,7 @@ class ViewPage extends Component {
                 'Content-Type': 'application/json'
             })
         }).catch(function (error) {
-            window.alert("[Error] " + error);
+            console.log("[Error] " + error);
         })
         // .then(
         //     res => res.json()
@@ -405,7 +406,7 @@ class ViewPage extends Component {
                 'Content-Type': 'application/json'
             })
         }).catch(function (error) {
-            window.alert("[Error] " + error);
+            console.log("[Error] " + error);
         })
         // .then(
         //     res => res.json()
@@ -445,7 +446,7 @@ class ViewPage extends Component {
                 'Content-Type': 'application/json'
             })
         }).catch(function (error) {
-            window.alert("[Error] " + error);
+            console.log("[Error] " + error);
         })
         // .then(
         //     res => res.json()

@@ -20,7 +20,7 @@ db.once('open', () => {
 })
 
 
-Comment.findOne({offerID:"b7pnr8iSNmt8hwdaqHbi5V"}, (err, data) => {
+Offer.findOne({offerID:"b7pnr8iSNmt8hwdaqHbi5V"}, (err, data) => {
     if (err) {
         console.log(err);
     }
