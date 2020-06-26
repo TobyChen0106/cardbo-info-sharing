@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'GillSansMT';
+    src: local('GillSansMT'), url('../fonts/GillSansMT.TTF') format('truetype');
+}
+
+@font-face {
+    font-family: 'GenRyuMinTW-SemiBold-TTF';
+    src: local('GenRyuMinTW-SemiBold-TTF'), url('../fonts/GenRyuMinTW-SemiBold-TTF.ttf') format('truetype');
+}
+
+.header {
+    font-family: 'cwTeXYen', 'sans-serif';
+}
