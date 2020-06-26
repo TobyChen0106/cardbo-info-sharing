@@ -150,9 +150,9 @@ class ViewPage extends Component {
         // });
         var userData = null;
 
-        liff.init({ liffId: '1653657893-kNnrZN51' }).then(() => {
+        liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: ("https://share.cardbo.info/" + id) });
+                liff.login({ redirectUri: ("https://share.cardbo.info") });
             }
         }).then(
             () => liff.getOS()
