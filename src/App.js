@@ -22,7 +22,7 @@ export default class App extends Component {
     return (
       <BrowserRouter>
         <Switch>
-          <Route  exact={true} path="/:id?" component={ViewPage} />
+          <Route path="/" component={ViewPage} />
         </Switch>
       </BrowserRouter>
     );

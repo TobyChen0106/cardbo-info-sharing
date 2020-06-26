@@ -65,7 +65,10 @@ class ViewPage extends Component {
     }
 
     componentWillMount = () => {
-        const id = this.props.match.params.id;
+        // const id = this.props.match.params.id;
+
+        const params = new URLSearchParams(this.props.location);
+        const id = params.get('id');
         this.setState({
             id: id
         })
@@ -152,7 +155,7 @@ class ViewPage extends Component {
 
         liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: ("https://share.cardbo.info") });
+                liff.login({ redirectUri: ("https://share.cardbo.info/?id=" + id) });
             }
         }).then(
             () => liff.getOS()
