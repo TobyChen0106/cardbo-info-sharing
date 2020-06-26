@@ -67,8 +67,10 @@ class ViewPage extends Component {
     componentWillMount = () => {
         // const id = this.props.match.params.id;
 
-        const params = new URLSearchParams(this.props.location);
+        const params = new URLSearchParams(this.props.location.search);
         const id = params.get('id');
+        console.log(id)
+
         this.setState({
             id: id
         })
