@@ -152,7 +152,7 @@ class ViewPage extends Component {
 
         liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: ("https://share.cardbo.info/") });
+                liff.login({ redirectUri: ("https://share.cardbo.info") });
             }
         }).then(
             () => liff.getOS()
