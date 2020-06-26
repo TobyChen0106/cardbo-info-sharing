@@ -37,6 +37,7 @@ class ViewPage extends Component {
         super(props);
         this.state = {
             id: undefined,
+            OS: undefined,
             loading_offer: true,
             loading_user: true,
             loading_comment: true,
@@ -122,16 +123,17 @@ class ViewPage extends Component {
         //     }
         // }
 
-        var userData = {
-            userName: "Toby3",
-            userID: "5579",
-            userImage: "https://react.semantic-ui.com/images/avatar/small/matt.jpg",
-        }
+        // var userData = {
+        //     userName: "Toby3",
+        //     userID: "5579",
+        //     userImage: "https://react.semantic-ui.com/images/avatar/small/matt.jpg",
+        // }
 
-        this.setState({
-            userData: userData,
-            loading_user: false
-        })
+        // this.setState({
+        //     userData: userData,
+        //     loading_user: false
+        // })
+
         // const userLikeComment = commentData.commentLikes.users.find(el => el.userID === userData.userID).like;
 
         // const userComment = {
@@ -146,95 +148,130 @@ class ViewPage extends Component {
         //     userData: userData,
         //     userComment: userComment
         // });
+        var userData = null;
 
-        fetch('/api/get-offer-id/' + id).catch(function (error) {
-            window.alert("[Error] " + error);
-        }).then(
-            res => res.json()
-        ).then((data) => {
-            if (data) {
-                this.setState({
-                    infoData: {
-                        offerName: data.offerName,
-                        offerID: data.offerID,
-                        cardInfo: data.cardInfo,
-                        provider: data.provider,
-                        offerAbstract: data.offerAbstract,
-                        category: data.category,
-                        tags: data.tags,
-                        beginDate: data.expiration.beginDate,
-                        endDate: data.expiration.endDate,
-                        contents: data.reward.contents,
-                    },
-                });
-            } else {
-                console.log("offer data not found!");
+        liff.init({ liffId: '1653657893-kNnrZN51' }).then(() => {
+            if (!liff.isLoggedIn()) {
+                liff.login({ redirectUri: ("https://share.cardbo.info/" + id) });
             }
-        }).then(() => {
-            this.setState({ loading_offer: false });
-        });
-
-        fetch('/api/get-comment-id/' + id).catch(function (error) {
-            window.alert("[Error] " + error);
         }).then(
-            res => res.json()
-        ).then((data) => {
-            if (data) {
-                var num_likes_count = 0;
-                var num_dislikes_count = 0;
-
-                for (var i = 0; i < data.userLikes.length; ++i) {
-                    if (data.userLikes[i].like === true)
-                        num_likes_count++;
-                    else if (data.userLikes[i].like === false)
-                        num_dislikes_count++;
+            () => liff.getOS()
+        ).then(
+            (OS) => { this.setState({ OS: OS }) }
+        ).then(
+            () => liff.getProfile()
+        ).then((profile) => {
+            if (!profile.userId) {
+                window.alert("USER ID ERROR!");
+            } else {
+                userData = {
+                    userName: profile.displayName,
+                    userID: profile.userId,
+                    userImage: profile.pictureUrl,
                 }
-
-                const userLikeComment = data.userLikes.find(el => el.userID === userData.userID);
-                var userLikeCommentResult = null;
-                if (userLikeComment) {
-                    userLikeCommentResult = userLikeComment.like;
-                }
-
-                const userFavoComment = data.userFavos.find(el => el.userID === userData.userID);
-                var userFavoCommentResult = false;
-                if (userFavoComment) {
-                    userFavoCommentResult = userFavoComment.favo;
-                }
-
-                data.comments = data.comments.filter(function (el) { return el != null; });
-
-                for (var i = 0; i < data.comments.length; ++i) {
-                    data.comments[i].time = new Date(data.comments[i].time);
-                }
-
-                const compare = (a, b) => {
-                    if (a.time > b.time) {
-                        return -1;
-                    } else if (a.time < b.time) {
-                        return 1;
+                this.setState({
+                    userData: {
+                        userName: profile.displayName,
+                        userID: profile.userId,
+                        userImage: profile.pictureUrl,
                     }
-                    return 0;
-                }
-
-                this.setState({
-                    comments: data.comments.sort(compare),
-                    commentLikes: {
-                        num_likes: num_likes_count,
-                        num_dislikes: num_dislikes_count,
-                        users: data.users
-                    },
-                    userComment: {
-                        like: userLikeCommentResult,
-                        favo: userFavoCommentResult
-                    },
                 });
-
-            } else {
-                console.log("comment data not found!");
             }
         }).then(() => {
-            this.setState({ loading_comment: false });
+            this.setState({
+                loading_user: false
+            })
+        }).then(() => {
+
+            fetch('/api/get-offer-id/' + id).catch(function (error) {
+                window.alert("[Error] " + error);
+            }).then(
+                res => res.json()
+            ).then((data) => {
+                if (data) {
+                    this.setState({
+                        infoData: {
+                            offerName: data.offerName,
+                            offerID: data.offerID,
+                            cardInfo: data.cardInfo,
+                            provider: data.provider,
+                            offerAbstract: data.offerAbstract,
+                            category: data.category,
+                            tags: data.tags,
+                            beginDate: data.expiration.beginDate,
+                            endDate: data.expiration.endDate,
+                            contents: data.reward.contents,
+                        },
+                    });
+                } else {
+                    console.log("offer data not found!");
+                }
+            }).then(() => {
+                this.setState({ loading_offer: false });
+            });
+
+            fetch('/api/get-comment-id/' + id).catch(function (error) {
+                window.alert("[Error] " + error);
+            }).then(
+                res => res.json()
+            ).then((data) => {
+                if (data) {
+                    var num_likes_count = 0;
+                    var num_dislikes_count = 0;
+
+                    for (var i = 0; i < data.userLikes.length; ++i) {
+                        if (data.userLikes[i].like === true)
+                            num_likes_count++;
+                        else if (data.userLikes[i].like === false)
+                            num_dislikes_count++;
+                    }
+
+                    const userLikeComment = data.userLikes.find(el => el.userID === userData.userID);
+                    var userLikeCommentResult = null;
+                    if (userLikeComment) {
+                        userLikeCommentResult = userLikeComment.like;
+                    }
+
+                    const userFavoComment = data.userFavos.find(el => el.userID === userData.userID);
+                    var userFavoCommentResult = false;
+                    if (userFavoComment) {
+                        userFavoCommentResult = userFavoComment.favo;
+                    }
+
+                    data.comments = data.comments.filter(function (el) { return el != null; });
+
+                    for (var i = 0; i < data.comments.length; ++i) {
+                        data.comments[i].time = new Date(data.comments[i].time);
+                    }
+
+                    const compare = (a, b) => {
+                        if (a.time > b.time) {
+                            return -1;
+                        } else if (a.time < b.time) {
+                            return 1;
+                        }
+                        return 0;
+                    }
+
+                    this.setState({
+                        comments: data.comments.sort(compare),
+                        commentLikes: {
+                            num_likes: num_likes_count,
+                            num_dislikes: num_dislikes_count,
+                            users: data.users
+                        },
+                        userComment: {
+                            like: userLikeCommentResult,
+                            favo: userFavoCommentResult
+                        },
+                    });
+
+                } else {
+                    console.log("comment data not found!");
+                }
+            }).then(() => {
+                this.setState({ loading_comment: false });
+            });
         });
     }
 
