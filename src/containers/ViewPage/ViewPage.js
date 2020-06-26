@@ -176,7 +176,6 @@ class ViewPage extends Component {
                         userImage: profile.pictureUrl,
                     }
                 });
-                window.alert(profile.pictureUrl)
             }
         }).then(() => {
             this.setState({
