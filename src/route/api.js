@@ -1,10 +1,12 @@
 const express = require("express");
+const mongoose = require('mongoose')
 const router = express.Router();
 const User = require('../models/User');
 const Card = require('../models/Card');
 const OfferData = require('../models/OfferData');
+const OfferDataDigital = require('../models/OfferDataDigital');
+const OfferDataAnalog = require('../models/OfferDataAnalog');
 const Store = require('../models/Store');
-const Comment = require('../models/Comment');
 const OfferPost = require("../models/OfferPost");
 
 router.post('/append-comment-id/:id', (req, res) => {
@@ -98,35 +100,26 @@ router.post('/save-favo-id/:id', (req, res) => {
 });
 
 router.post('/get-user-by-lineID', (req, res) => {
-    const id = req.body.lineID;
-    User.findOne({ lineID: id }, (err, data) => {
+    User.findOne({ lineID: req.body.lineID }, (err, data) => {
         if (err) {
             console.log(err);
         }
         else if (!data) {
-            console.log("[ERROR] <get-comment-id> DATA NOT FOUND!");
-            res.json(null);
-        }
-        else {
-            res.json(data);
-        }
-    })
-});
-
-router.get('/get-comment-id/:id', (req, res) => {
-    const id = req.params.id;
-    Comment.findOne({ offerID: id }, (err, data) => {
-        if (err) {
-            console.log(err);
-        }
-        else if (!data) {
-            const empty_comment = new Comment({
-                commentLikes: {
-                    num_likes: 0,
-                    num_dislikes: 0
+            const newUser = new User({
+                lineID: req.body.lineID,
+                displayName: req.body.displayName,
+                userImage: req.body.userImage,
+            })
+            newUser.save().then(
+                function (updatedDoc, err) {
+                    if (err) {
+                        console.log(err);
+                        res.json(null);
+                    } else {
+                        res.json(updatedDoc);
+                    }
                 }
-            });
-            res.json(empty_comment);
+            );
         }
         else {
             res.json(data);
@@ -134,24 +127,44 @@ router.get('/get-comment-id/:id', (req, res) => {
     })
 });
 
-router.get('/get-offer-by-id-and-type', (req, res) => {
+router.post('/get-offer-by-id-and-type', (req, res) => {
     const id = req.body.id;
     const type = req.body.type;
-    OfferData.findOne({ offerID: id }, (err, data) => {
-        if (err) {
-            console.log(err);
+    OfferData.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err1, offerdata) => {
+        if (err1) {
+            console.log(err1);
         }
-        else if (!data) {
-            console.log("[ERROR] <get-offer-id> DATA NOT FOUND!");
-            res.json(null);
+        else if (!offerdata) {
+            OfferDataDigital.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err2, offerdatanalog) => {
+                if (err2) {
+                    console.log(err2);
+                }
+                else if (!offerdatanalog) {
+                    OfferDataAnalog.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err3, offerdadigital) => {
+                        if (err3) {
+                            console.log(err3);
+                        }
+                        else if (!offerdadigital) {
+                            console.log(`[ERROR] <get-offer-by-id-and-type> DATA NOT FOUND! ID: ${id}`);
+                            res.json(null);
+                        }
+                        else {
+                            res.json(offerdadigital);
+                        }
+                    })
+                }
+                else {
+                    res.json(offerdatanalog);
+                }
+            })
         }
         else {
-            res.json(data);
+            res.json(offerdata);
         }
     })
 });
 
-router.get('/get-offer-post-by-id-and-type', (req, res) => {
+router.post('/get-offer-post-by-id-and-type', (req, res) => {
     const id = req.body.id;
     const type = req.body.type;
     OfferPost.findOne({ offerID: id }, (err, data) => {
@@ -159,7 +172,7 @@ router.get('/get-offer-post-by-id-and-type', (req, res) => {
             console.log(err);
         }
         else if (!data) {
-            console.log("[ERROR] <get-offer-id> DATA NOT FOUND!");
+            // console.log("[ERROR] <get-offer-post-by-id-and-type> DATA NOT FOUND!");
             res.json(null);
         }
         else {

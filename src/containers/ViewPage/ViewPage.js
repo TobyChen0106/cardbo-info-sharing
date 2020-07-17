@@ -44,9 +44,10 @@ class ViewPage extends Component {
             loading_comment: true,
 
             userData: {
-                userName: "",
-                userID: "",
+                displayName: "",
+                lineID: "",
                 userImage: "",
+                favos: []
             },
 
             offerData: {
@@ -54,15 +55,14 @@ class ViewPage extends Component {
                 offerName: "",
                 contents: "",
             },
-            offerPosts: [],
-            offerPostsComments: [],
+            offerPost: {
+                comments: [],
+                likes: [],
+                dislikes: [],
+                views: 0,
+            },
+            offerPostComments: [],
             validData: false,
-
-            userOfferPosts: {
-                like: false,
-                dislike: false,
-                favo: false
-            }
         }
     }
 
@@ -91,57 +91,58 @@ class ViewPage extends Component {
                 console.log("USER ID ERROR!");
             } else {
                 axios.post('/api/get-user-by-lineID', {
-                    lineID: profile.userId
-                }).then((data) => {
-                    this.setState({
-                        userData: {
-                            userName: profile.displayName,
-                            userID: profile.userId,
-                            userImage: profile.pictureUrl,
-                            favos: data.favos
-                        },
-                        loading_user: false
-                    });
+                    lineID: profile.userId,
+                    displayName: profile.displayName,
+                    userImage: profile.pictureUrl,
+                }).then((res) => {
+                    if (res.data) {
+                        this.setState({ userData: res.data });
+                    }
+                    this.setState({ loading_user: false })
                 })
 
                 axios.post('/api/get-offer-by-id-and-type', {
                     id: id,
                     type: type
-                }).then((data) => {
-                    if (data) {
-                        this.setState({ validData: true });
+                }).then((res) => {
+                    if (res.data) {
+                        this.setState({ offerData: res.data, validData: true });
                     }
-                    this.setState({ offerData: data, loading_offer: false });
+                    this.setState({ loading_offer: false });
                 })
 
                 axios.post('/api/get-offer-post-by-id-and-type', {
                     id: id,
                     type: type
-                }).then((data) => {
-                    if(data){
-                        this.setState({ offerPosts: data, offerPostsComments: data.comments.sort((a, b) => b.time - a.time), loading_comment: false }, () => {
-                            for (var i = 0; i < data.comments.length; ++i) {
+                }).then((res) => {
+                    if (res.data) {
+                        this.setState({ offerPost: res.data, offerPostComments: res.data.comments.sort((a, b) => b.time - a.time), loading_comment: false }, () => {
+                            for (var i = 0; i < res.data.comments.length; ++i) {
                                 axios.post('/api/get-user-by-lineID', {
-                                    lineID: data.comments[i].lineID,
-                                }).then((data) => {
-                                    this.setState(prevState => {
-                                        const list = prevState.offerPostsComments.map((item, j) => {
-                                            if (j === i) {
-                                                item.userName = data.userName;
-                                                item.userImage = data.userImage;
-                                                item.time = new Date(item.time)
-                                                return item;
-                                            } else {
-                                                return item;
-                                            }
+                                    lineID: res.data.comments[i].lineID,
+                                }).then((res2) => {
+                                    if (res2.data) {
+                                        this.setState(prevState => {
+                                            const list = prevState.offerPostComments.map((item, j) => {
+                                                if (j === i) {
+                                                    item.displayName = res2.data.displayName;
+                                                    item.userImage = res2.data.userImage;
+                                                    item.time = new Date(item.time)
+                                                    return item;
+                                                } else {
+                                                    return item;
+                                                }
+                                            });
+                                            return {
+                                                offerPostComments: list,
+                                            };
                                         });
-                                        return {
-                                            offerPostsComments: list,
-                                        };
-                                    });
+                                    }
                                 })
                             }
                         });
+                    } else {
+                        this.setState({ loading_comment: false })
                     }
                 })
             }
@@ -158,7 +159,7 @@ class ViewPage extends Component {
         fetch('/api/save-favo-id/' + this.state.id, {
             method: 'POST',
             body: JSON.stringify({
-                userID: this.state.userData.userID,
+                lineID: this.state.userData.userID,
                 favo: new_userComment.favo
             }),
             headers: new Headers({
@@ -210,7 +211,7 @@ class ViewPage extends Component {
         fetch('/api/save-like-id/' + this.state.id, {
             method: 'POST',
             body: JSON.stringify({
-                userID: this.state.userData.userID,
+                lineID: this.state.userData.userID,
                 like: new_like
             }),
             headers: new Headers({
@@ -264,7 +265,7 @@ class ViewPage extends Component {
         fetch('/api/save-like-id/' + this.state.id, {
             method: 'POST',
             body: JSON.stringify({
-                userID: this.state.userData.userID,
+                lineID: this.state.userData.userID,
                 like: new_like
             }),
             headers: new Headers({
@@ -285,8 +286,8 @@ class ViewPage extends Component {
 
         this.setState(prevState => ({
             comments: [{
-                userName: prevState.userData.userName,
-                userID: prevState.userData.userID,
+                displayName: prevState.userData.displayName,
+                lineID: prevState.userData.userID,
                 userImage: prevState.userData.userImage,
                 content: text,
                 showStatus: true,
@@ -299,8 +300,8 @@ class ViewPage extends Component {
             method: 'POST',
             body: JSON.stringify({
                 new_comments: {
-                    userName: this.state.userData.userName,
-                    userID: this.state.userData.userID,
+                    displayName: this.state.userData.displayName,
+                    lineID: this.state.userData.userID,
                     userImage: this.state.userData.userImage,
                     content: text,
                     showStatus: true,
@@ -333,6 +334,9 @@ class ViewPage extends Component {
             );
         }
         else {
+            const like = this.state.offerPost.likes.find(l => l === this.state.userData.lineID) !== undefined;
+            const dislike = this.state.offerPost.dislikes.find(l => l === this.state.userData.lineID) !== undefined;
+            const favo = this.state.userData.favos.find(f => f === this.state.id) !== undefined;
             return (
                 <div className={classes.root}>
                     <Card className={classes.contentHolder}>
@@ -346,11 +350,13 @@ class ViewPage extends Component {
                         />
                         <UserAction
                             id={this.state.id}
-                            num_likes={this.state.offerPosts.like.length}
-                            num_dislikes={this.state.offerPosts.dislike.length}
-                            like_checked={this.state.userOfferPosts.like}
-                            dislike_checked={this.state.userOfferPosts.dislike}
-                            favo_checked={this.state.userOfferPosts.favo}
+                            num_likes={this.state.offerPost.likes.length}
+                            num_dislikes={this.state.offerPost.dislikes.length}
+
+                            like_checked={like}
+                            dislike_checked={dislike}
+                            favo_checked={favo}
+
                             userAddToFavo={this.userAddToFavo}
                             userAddToLike={this.userAddToLike}
                             userAddToDislike={this.userAddToDislike}
@@ -359,24 +365,23 @@ class ViewPage extends Component {
 
                     <div className={classes.commentHolder}>
                         <UserLeaveComment
-                            userName={this.state.userData.userName}
+                            userName={this.state.userData.displayName}
                             userImage={this.state.userData.userImage}
                             handleSendCommend={this.handleSendCommend}
                         />
                     </div>
 
                     <div className={classes.commentHolder}>
-                        {this.state.offerPostsComments.map((i, index) => (
+                        {this.state.offerPostComments.map((i, index) => (
                             <UserComment
                                 key={`comment-${index}`}
-                                userName={i.userName}
+                                userName={i.displayName}
                                 userImage={i.userImage}
                                 content={i.content}
                                 time={i.time}
                             />
                         ))}
                     </div>
-
                 </div>
             )
         }

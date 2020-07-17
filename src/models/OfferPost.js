@@ -2,17 +2,17 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const commentSchema = new Schema({
-    userID: mongoose.ObjectId,
+    lineID: mongoose.ObjectId,
     content: String,
-    showStatus: Bool,
+    showStatus: Boolean,
     time: String
 })
 
 const OfferPostSchema = new Schema({
     offerID: [mongoose.ObjectId],
     comments: [commentSchema],
-    like: [mongoose.ObjectId],
-    dislike: [mongoose.ObjectId],
+    likes: [mongoose.ObjectId],
+    dislikes: [mongoose.ObjectId],
     views: Number,
 })
 

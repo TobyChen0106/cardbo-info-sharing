@@ -8,16 +8,40 @@ const UserSchema = new Schema({
     phone: String,
     email: String,
     city: String,
-    favos: [mongoose.ObjectId],
-    ownCards: [mongoose.ObjectId],
-    ownPays: [mongoose.ObjectId],
-    CallCardbo_Pays_Warning: String, // "Yes"、"No"
-    SortByCategory_Pays_Warning: String, // "Yes"、"No"
-    tripleType: String, // "實體券"、"悠遊卡"、"一卡通"、"有錢卡"、"愛金卡"、"行動支付"、"信用卡"、"先不告訴你"
-    tripleCardorPayID: mongoose.ObjectId,
-    favos: [mongoose.ObjectId],
+    favos: {
+        type: [mongoose.ObjectId],
+        default: []
+    },
+    ownCards: {
+        type: [mongoose.ObjectId],
+        default: []
+    },
+    ownPays: {
+        type: [mongoose.ObjectId],
+        default: []
+    },
+    CallCardbo_Pays_Warning: {
+        type: String,
+        default: ""
+    },
+    SortByCategory_Pays_Warning: {
+        type: String,
+        default: ""
+    }, // "Yes"、"No"
+    tripleType: {
+        type: String,
+        default: ""
+    }, // "實體券"、"悠遊卡"、"一卡通"、"有錢卡"、"愛金卡"、"行動支付"、"信用卡"、"先不告訴你"
+    tripleCardorPayID: {
+        type: String,
+        default: null
+    },
+    favos: {
+        type: [mongoose.ObjectId],
+        default: []
+    }
 })
 
-const User= mongoose.model('User', UserSchema, "User");
+const User = mongoose.model('User', UserSchema, "User");
 module.exports = User;
 
