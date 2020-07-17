@@ -4,26 +4,26 @@ const Schema = mongoose.Schema
 const StoreSchema = new Schema({
     storeName: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
-    categories: {
-        type:[String]
-    },
-    tags: {
-        type:[String]
-    },
-    imageLink: {
-        type: String
-    },
-    websiteLink: {
-        type: String
-    },
-    numSearch:{
+    age: {
         type: Number,
-        default: 0
+        required: true
+    },
+    gender: {
+        type: String,
+        required: true
+    },
+    progress: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+    note: {
+        type: Schema.Types.Mixed,
+        required: true
     }
-})
+});
 
-const Store = mongoose.model('store', StoreSchema);
+const Store = mongoose.model('Store', StoreSchema);
 module.exports = Store;

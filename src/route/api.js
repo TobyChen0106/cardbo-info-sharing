@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const User = require('../models/User');
 const Card = require('../models/Card');
-const Offer = require('../models/Offer');
+const OfferData = require('../models/OfferData');
 const Store = require('../models/Store');
 const Comment = require('../models/Comment');
+const OfferPost = require("../models/OfferPost");
 
 router.post('/append-comment-id/:id', (req, res) => {
     const id = req.params.id;
@@ -96,14 +97,15 @@ router.post('/save-favo-id/:id', (req, res) => {
     })
 });
 
-router.get('/get-user-id/:id', (req, res) => {
-    const id = req.params.id;
+router.post('/get-user-by-lineID', (req, res) => {
+    const id = req.body.lineID;
     User.findOne({ lineID: id }, (err, data) => {
         if (err) {
             console.log(err);
         }
         else if (!data) {
             console.log("[ERROR] <get-comment-id> DATA NOT FOUND!");
+            res.json(null);
         }
         else {
             res.json(data);
@@ -132,14 +134,33 @@ router.get('/get-comment-id/:id', (req, res) => {
     })
 });
 
-router.get('/get-offer-id/:id', (req, res) => {
-    const offerID = req.params.id;
-    Offer.findOne({ offerID: offerID }, (err, data) => {
+router.get('/get-offer-by-id-and-type', (req, res) => {
+    const id = req.body.id;
+    const type = req.body.type;
+    OfferData.findOne({ offerID: id }, (err, data) => {
         if (err) {
             console.log(err);
         }
         else if (!data) {
             console.log("[ERROR] <get-offer-id> DATA NOT FOUND!");
+            res.json(null);
+        }
+        else {
+            res.json(data);
+        }
+    })
+});
+
+router.get('/get-offer-post-by-id-and-type', (req, res) => {
+    const id = req.body.id;
+    const type = req.body.type;
+    OfferPost.findOne({ offerID: id }, (err, data) => {
+        if (err) {
+            console.log(err);
+        }
+        else if (!data) {
+            console.log("[ERROR] <get-offer-id> DATA NOT FOUND!");
+            res.json(null);
         }
         else {
             res.json(data);

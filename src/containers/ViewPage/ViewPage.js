@@ -8,6 +8,7 @@ import ReactLoading from 'react-loading';
 import UserComment from '../../components/UserComment';
 import UserLeaveComment from '../../components/UserLeaveComment';
 import UserAction from '../../components/UserAction';
+import axios from 'axios';
 
 // Liff
 const liff = window.liff;
@@ -42,122 +43,42 @@ class ViewPage extends Component {
             loading_user: true,
             loading_comment: true,
 
-            OfferData: true,
             userData: {
+                userName: "",
+                userID: "",
+                userImage: "",
+            },
 
+            offerData: {
+                offerID: "",
+                offerName: "",
+                contents: "",
             },
-            infoData: {
-                offerID: undefined,
-                offerName: undefined,
-                cardInfo: undefined,
-                tags: undefined,
-                provider: undefined,
-                beginDate: undefined,
-                endDate: undefined,
-                contents: undefined,
-                offerAbstract: undefined,
-            },
-            comments: undefined,
-            commentLikes: undefined,
-            userData: undefined,
-            userComment: undefined
+            offerPosts: [],
+            offerPostsComments: [],
+            validData: false,
+
+            userOfferPosts: {
+                like: false,
+                dislike: false,
+                favo: false
+            }
         }
     }
 
     componentWillMount = () => {
-        // const id = this.props.match.params.id;
-
         const params = new URLSearchParams(this.props.location.search);
         const id = params.get('id');
-        console.log(id)
+        const type = params.get('type');
 
         this.setState({
-            id: id
+            id: id,
+            type: type
         })
-        // var infoData = {
-        //     offerName: "優惠1",
-        //     offerID: "123456",
-        //     cardInfo:
-        //         [
-        //             {
-        //                 cardID: "555",
-        //                 cardName: "卡片"
-        //             }
-        //         ],
-        //     provider: "卡伯",
-        //     offerAbstract: "優惠1offerAbstract",
-        //     category: "國內一般消費",
-        //     tags: ["測試", "測試2"],
-        //     beginDate: "2020-01-06",
-        //     endDate: "2020-01-06",
-        //     contents: "- 優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1優惠1",
-        // }
-
-        // var d = new Date();
-        // var commentData = {
-        //     comments: [
-        //         {
-        //             userName: "Toby",
-        //             userID: "5577",
-        //             userImage: "https://react.semantic-ui.com/images/avatar/small/joe.jpg",
-        //             content: "我覺得很棒66666666666666666666666666666666666666\n\n😊",
-        //             showStatus: true,
-        //             time: d
-        //         },
-        //         {
-        //             userName: "Toby2",
-        //             userID: "5578",
-        //             userImage: "https://react.semantic-ui.com/images/avatar/small/matt.jpg",
-        //             content: "我也覺得很棒",
-        //             showStatus: true,
-        //             time: d
-        //         },
-        //     ],
-        //     commentLikes: {
-        //         num_likes: 3,
-        //         num_dislikes: 4,
-        //         users: [
-        //             { userID: "5579", like: true },
-        //             { userID: "0002", like: true },
-        //             { userID: "0003", like: false },
-        //             { userID: "0004", like: false },
-        //             { userID: "0005", like: false },
-        //             { userID: "5578", like: false },
-        //             { userID: "5577", like: true }
-        //         ],
-        //     }
-        // }
-
-        // var userData = {
-        //     userName: "Toby3",
-        //     userID: "5579",
-        //     userImage: "https://react.semantic-ui.com/images/avatar/small/matt.jpg",
-        // }
-
-        // this.setState({
-        //     userData: userData,
-        //     loading_user: false
-        // })
-
-        // const userLikeComment = commentData.commentLikes.users.find(el => el.userID === userData.userID).like;
-
-        // const userComment = {
-        //     like: userLikeComment,
-        //     favo: true
-        // }
-
-        // this.setState({
-        //     infoData: infoData,
-        //     comments: commentData.comments,
-        //     commentLikes: commentData.commentLikes,
-        //     userData: userData,
-        //     userComment: userComment
-        // });
-        var userData = null;
 
         liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: ("https://share.cardbo.info/?id=" + id) });
+                liff.login({ redirectUri: (`https://share.cardbo.info/?id=${id}?type=${type}`) });
             }
         }).then(
             () => liff.getOS()
@@ -169,115 +90,62 @@ class ViewPage extends Component {
             if (!profile.userId) {
                 console.log("USER ID ERROR!");
             } else {
-                userData = {
-                    userName: profile.displayName,
-                    userID: profile.userId,
-                    userImage: profile.pictureUrl,
-                }
-                this.setState({
-                    userData: {
-                        userName: profile.displayName,
-                        userID: profile.userId,
-                        userImage: profile.pictureUrl,
+                axios.post('/api/get-user-by-lineID', {
+                    lineID: profile.userId
+                }).then((data) => {
+                    this.setState({
+                        userData: {
+                            userName: profile.displayName,
+                            userID: profile.userId,
+                            userImage: profile.pictureUrl,
+                            favos: data.favos
+                        },
+                        loading_user: false
+                    });
+                })
+
+                axios.post('/api/get-offer-by-id-and-type', {
+                    id: id,
+                    type: type
+                }).then((data) => {
+                    if (data) {
+                        this.setState({ validData: true });
                     }
-                });
+                    this.setState({ offerData: data, loading_offer: false });
+                })
+
+                axios.post('/api/get-offer-post-by-id-and-type', {
+                    id: id,
+                    type: type
+                }).then((data) => {
+                    if(data){
+                        this.setState({ offerPosts: data, offerPostsComments: data.comments.sort((a, b) => b.time - a.time), loading_comment: false }, () => {
+                            for (var i = 0; i < data.comments.length; ++i) {
+                                axios.post('/api/get-user-by-lineID', {
+                                    lineID: data.comments[i].lineID,
+                                }).then((data) => {
+                                    this.setState(prevState => {
+                                        const list = prevState.offerPostsComments.map((item, j) => {
+                                            if (j === i) {
+                                                item.userName = data.userName;
+                                                item.userImage = data.userImage;
+                                                item.time = new Date(item.time)
+                                                return item;
+                                            } else {
+                                                return item;
+                                            }
+                                        });
+                                        return {
+                                            offerPostsComments: list,
+                                        };
+                                    });
+                                })
+                            }
+                        });
+                    }
+                })
             }
-        }).then(() => {
-            this.setState({
-                loading_user: false
-            })
-        }).then(() => {
-
-            fetch('/api/get-offer-id/' + id).catch(function (error) {
-                console.log("[Error] " + error);
-            }).then(
-                res => res.json()
-            ).then((data) => {
-                if (data) {
-                    this.setState({
-                        infoData: {
-                            offerName: data.offerName,
-                            offerID: data.offerID,
-                            cardInfo: data.cardInfo,
-                            provider: data.provider,
-                            offerAbstract: data.offerAbstract,
-                            category: data.category,
-                            tags: data.tags,
-                            beginDate: data.expiration.beginDate,
-                            endDate: data.expiration.endDate,
-                            contents: data.reward.contents,
-                        },
-                    });
-                } else {
-                    console.log("offer data not found!");
-                }
-            }).then(() => {
-                this.setState({ loading_offer: false });
-            });
-
-            fetch('/api/get-comment-id/' + id).catch(function (error) {
-                console.log("[Error] " + error);
-            }).then(
-                res => res.json()
-            ).then((data) => {
-                if (data) {
-                    var num_likes_count = 0;
-                    var num_dislikes_count = 0;
-
-                    for (var i = 0; i < data.userLikes.length; ++i) {
-                        if (data.userLikes[i].like === true)
-                            num_likes_count++;
-                        else if (data.userLikes[i].like === false)
-                            num_dislikes_count++;
-                    }
-
-                    const userLikeComment = data.userLikes.find(el => el.userID === userData.userID);
-                    var userLikeCommentResult = null;
-                    if (userLikeComment) {
-                        userLikeCommentResult = userLikeComment.like;
-                    }
-
-                    const userFavoComment = data.userFavos.find(el => el.userID === userData.userID);
-                    var userFavoCommentResult = false;
-                    if (userFavoComment) {
-                        userFavoCommentResult = userFavoComment.favo;
-                    }
-
-                    data.comments = data.comments.filter(function (el) { return el != null; });
-
-                    for (var i = 0; i < data.comments.length; ++i) {
-                        data.comments[i].time = new Date(data.comments[i].time);
-                    }
-
-                    const compare = (a, b) => {
-                        if (a.time > b.time) {
-                            return -1;
-                        } else if (a.time < b.time) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-
-                    this.setState({
-                        comments: data.comments.sort(compare),
-                        commentLikes: {
-                            num_likes: num_likes_count,
-                            num_dislikes: num_dislikes_count,
-                            users: data.users
-                        },
-                        userComment: {
-                            like: userLikeCommentResult,
-                            favo: userFavoCommentResult
-                        },
-                    });
-
-                } else {
-                    console.log("comment data not found!");
-                }
-            }).then(() => {
-                this.setState({ loading_comment: false });
-            });
-        });
+        })
     }
 
     userAddToFavo = () => {
@@ -287,7 +155,6 @@ class ViewPage extends Component {
             userComment: new_userComment
         })
 
-        //fetch
         fetch('/api/save-favo-id/' + this.state.id, {
             method: 'POST',
             body: JSON.stringify({
@@ -300,9 +167,6 @@ class ViewPage extends Component {
         }).catch(function (error) {
             console.log("[Error] " + error);
         })
-        // .then(
-        //     res => res.json()
-        // )
     }
 
     userAddToLike = () => {
@@ -355,9 +219,6 @@ class ViewPage extends Component {
         }).catch(function (error) {
             console.log("[Error] " + error);
         })
-        // .then(
-        //     res => res.json()
-        // )
     }
 
     userAddToDislike = () => {
@@ -466,7 +327,7 @@ class ViewPage extends Component {
                 </div>
             );
         }
-        else if (!this.state.OfferData) {
+        else if (!this.state.validData) {
             return (
                 <div className={classes.root}>Data Not Found!</div>
             );
@@ -476,20 +337,20 @@ class ViewPage extends Component {
                 <div className={classes.root}>
                     <Card className={classes.contentHolder}>
                         <ContentMarkdown
-                            title={this.state.infoData.offerName}
-                            subtitle={`優惠期間: ${this.state.infoData.beginDate} - ${this.state.infoData.endDate}`}
-                            source={this.state.infoData.contents}
-                            provider={this.state.infoData.provider}
+                            title={this.state.offerData.OfferName}
+                            subtitle={`優惠期間: ${this.state.offerData.BeginDate} - ${this.state.offerData.EndDate}`}
+                            source={this.state.offerData.Content}
+                            provider={`卡伯`}
                             skipHtml='skip'
                             escapeHtml='escape'
                         />
                         <UserAction
                             id={this.state.id}
-                            num_likes={this.state.commentLikes.num_likes}
-                            num_dislikes={this.state.commentLikes.num_dislikes}
-                            like_checked={this.state.userComment.like !== null ? this.state.userComment.like : false}
-                            dislike_checked={this.state.userComment.like !== null ? !this.state.userComment.like : false}
-                            favo_checked={this.state.userComment.favo}
+                            num_likes={this.state.offerPosts.like.length}
+                            num_dislikes={this.state.offerPosts.dislike.length}
+                            like_checked={this.state.userOfferPosts.like}
+                            dislike_checked={this.state.userOfferPosts.dislike}
+                            favo_checked={this.state.userOfferPosts.favo}
                             userAddToFavo={this.userAddToFavo}
                             userAddToLike={this.userAddToLike}
                             userAddToDislike={this.userAddToDislike}
@@ -505,7 +366,7 @@ class ViewPage extends Component {
                     </div>
 
                     <div className={classes.commentHolder}>
-                        {this.state.comments.map((i, index) => (
+                        {this.state.offerPostsComments.map((i, index) => (
                             <UserComment
                                 key={`comment-${index}`}
                                 userName={i.userName}

@@ -15,9 +15,7 @@ export default class App extends Component {
       userPassword: cookies.get('cardbo-user-password'),
     }
   }
-  onSavePassWord = () => {
 
-  }
   render() {
     return (
       <BrowserRouter>
