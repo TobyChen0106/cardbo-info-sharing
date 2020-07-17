@@ -49,7 +49,6 @@ class ViewPage extends Component {
                 userImage: "",
                 favos: []
             },
-
             offerData: {
                 offerID: "",
                 offerName: "",
@@ -60,6 +59,11 @@ class ViewPage extends Component {
                 likes: [],
                 dislikes: [],
                 views: 0,
+            },
+            userAction: {
+                like: false,
+                dislike: false,
+                favo: false,
             },
             offerPostComments: [],
             validData: false,
@@ -98,7 +102,10 @@ class ViewPage extends Component {
                     if (res.data) {
                         this.setState({ userData: res.data });
                     }
-                    this.setState({ loading_user: false })
+                    var new_userAction = this.state.userAction;
+                    new_userAction.favo = res.data.favos.find(f => f === id) !== undefined;
+
+                    this.setState({ userAction: new_userAction, loading_user: false });
                 })
 
                 axios.post('/api/get-offer-by-id-and-type', {
@@ -141,6 +148,10 @@ class ViewPage extends Component {
                                 })
                             }
                         });
+                        var new_userAction = this.state.userAction;
+                        new_userAction.like = res.data.likes.find(l => l === profile.userId) !== undefined;
+                        new_userAction.dislike = res.data.dislikes.find(l => l === profile.userId) !== undefined;
+                        this.setState({ userAction: new_userAction });
                     } else {
                         this.setState({ loading_comment: false })
                     }
@@ -150,134 +161,65 @@ class ViewPage extends Component {
     }
 
     userAddToFavo = () => {
-        var new_userComment = this.state.userComment;
-        new_userComment.favo = !new_userComment.favo;
-        this.setState({
-            userComment: new_userComment
-        })
+        var new_userAction = this.state.userAction;
+        new_userAction.favo = !new_userAction.favo;
 
-        fetch('/api/save-favo-id/' + this.state.id, {
-            method: 'POST',
-            body: JSON.stringify({
-                lineID: this.state.userData.userID,
-                favo: new_userComment.favo
-            }),
-            headers: new Headers({
-                'Content-Type': 'application/json'
-            })
-        }).catch(function (error) {
-            console.log("[Error] " + error);
-        })
+        this.setState({ userAction: new_userAction });
+
+        axios.post('/api/save-favo-by-lineID', {
+            lineID: this.state.userData.lineID,
+            offerID: this.state.id,
+            favo: new_userAction.favo
+        }).then((res) => {
+            if (res.data) {
+                new_userAction.favo = res.data.favos.find(f => f === this.state.id) !== undefined;
+                this.setState({ userAction: new_userAction });
+            }
+        });
     }
 
     userAddToLike = () => {
-        var new_userComment = this.state.userComment;
-        var new_commentLikes = this.state.commentLikes;
-        var new_like = null;
-
-        if (new_userComment.like === true) {
-            new_userComment.like = null;
-            new_commentLikes.num_likes--;
-
-            this.setState({
-                userComment: new_userComment,
-                commentLikes: new_commentLikes
-            });
-        } else {
-            new_like = true;
-            if (new_userComment.like === false) {
-                new_userComment.like = true;
-
-                new_commentLikes.num_likes++;
-                new_commentLikes.num_dislikes--;
-
-                this.setState({
-                    userComment: new_userComment,
-                    commentLikes: new_commentLikes
-                })
-            } else {
-                new_userComment.like = true;
-
-                new_commentLikes.num_likes++;
-
-                this.setState({
-                    userComment: new_userComment,
-                    commentLikes: new_commentLikes
-                })
-            }
+        var new_userAction = this.state.userAction;
+        new_userAction.like = !new_userAction.like;
+        if (new_userAction.like) {
+            new_userAction.dislike = false;
         }
+        this.setState({ userAction: new_userAction });
 
-        //fetch
-        fetch('/api/save-like-id/' + this.state.id, {
-            method: 'POST',
-            body: JSON.stringify({
-                lineID: this.state.userData.userID,
-                like: new_like
-            }),
-            headers: new Headers({
-                'Content-Type': 'application/json'
-            })
-        }).catch(function (error) {
-            console.log("[Error] " + error);
-        })
+        axios.post('/api/save-like-by-lineID', {
+            lineID: this.state.userData.lineID,
+            offerID: this.state.id,
+            like: new_userAction.like,
+            dislike: new_userAction.dislike
+        }).then((res) => {
+            if (res.data) {
+                new_userAction.like = res.data.likes.find(l => l === this.state.userData.lineID) !== undefined;
+                new_userAction.dislike = res.data.dislikes.find(l => l === this.state.userData.lineID) !== undefined;
+                this.setState({ userAction: new_userAction, offerPost: res.data });
+            }
+        });
     }
 
     userAddToDislike = () => {
-        var new_userComment = this.state.userComment;
-        var new_commentLikes = this.state.commentLikes;
-        var new_like = null;
-
-        if (new_userComment.like === false) {
-            new_userComment.like = null;
-            new_commentLikes.num_dislikes--;
-
-            this.setState({
-                userComment: new_userComment,
-                commentLikes: new_commentLikes
-            });
-
-        } else {
-            new_like = false;
-            if (new_userComment.like === true) {
-                new_userComment.like = false;
-
-                new_commentLikes.num_likes--;
-                new_commentLikes.num_dislikes++;
-
-                this.setState({
-                    userComment: new_userComment,
-                    commentLikes: new_commentLikes
-                })
-
-            } else {
-                new_userComment.like = false;
-                new_commentLikes.num_dislikes++;
-
-                this.setState({
-                    userComment: new_userComment,
-                    commentLikes: new_commentLikes
-                })
-
-            }
+        var new_userAction = this.state.userAction;
+        new_userAction.dislike = !new_userAction.dislike;
+        if (new_userAction.dislike) {
+            new_userAction.like = false;
         }
+        this.setState({ userAction: new_userAction });
 
-        //fetch
-        fetch('/api/save-like-id/' + this.state.id, {
-            method: 'POST',
-            body: JSON.stringify({
-                lineID: this.state.userData.userID,
-                like: new_like
-            }),
-            headers: new Headers({
-                'Content-Type': 'application/json'
-            })
-        }).catch(function (error) {
-            console.log("[Error] " + error);
-        })
-        // .then(
-        //     res => res.json()
-        // )
-
+        axios.post('/api/save-like-by-lineID', {
+            lineID: this.state.userData.lineID,
+            offerID: this.state.id,
+            like: new_userAction.like,
+            dislike: new_userAction.dislike
+        }).then((res) => {
+            if (res.data) {
+                new_userAction.like = res.data.likes.find(l => l === this.state.userData.lineID) !== undefined;
+                new_userAction.dislike = res.data.dislikes.find(l => l === this.state.userData.lineID) !== undefined;
+                this.setState({ userAction: new_userAction, offerPost: res.data });
+            }
+        });
     }
 
     handleSendCommend = (text) => {
@@ -334,15 +276,13 @@ class ViewPage extends Component {
             );
         }
         else {
-            const like = this.state.offerPost.likes.find(l => l === this.state.userData.lineID) !== undefined;
-            const dislike = this.state.offerPost.dislikes.find(l => l === this.state.userData.lineID) !== undefined;
-            const favo = this.state.userData.favos.find(f => f === this.state.id) !== undefined;
+
             return (
                 <div className={classes.root}>
                     <Card className={classes.contentHolder}>
                         <ContentMarkdown
                             title={this.state.offerData.OfferName}
-                            subtitle={`優惠期間: ${this.state.offerData.BeginDate} - ${this.state.offerData.EndDate}`}
+                            subtitle={`優惠期間: ${this.state.offerData.BeginDate ? this.state.offerData.BeginDate : "即日起"} - ${this.state.offerData.EndDate ? this.state.offerData.EndDate : ""}`}
                             source={this.state.offerData.Content}
                             provider={`卡伯`}
                             skipHtml='skip'
@@ -353,9 +293,9 @@ class ViewPage extends Component {
                             num_likes={this.state.offerPost.likes.length}
                             num_dislikes={this.state.offerPost.dislikes.length}
 
-                            like_checked={like}
-                            dislike_checked={dislike}
-                            favo_checked={favo}
+                            like_checked={this.state.userAction.like}
+                            dislike_checked={this.state.userAction.dislike}
+                            favo_checked={this.state.userAction.favo}
 
                             userAddToFavo={this.userAddToFavo}
                             userAddToLike={this.userAddToLike}

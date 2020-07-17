@@ -35,66 +35,116 @@ router.post('/append-comment-id/:id', (req, res) => {
     })
 });
 
-router.post('/save-like-id/:id', (req, res) => {
-    const id = req.params.id;
-    Comment.findOne({ offerID: id }, (err, data) => {
+router.post('/save-like-by-lineID', (req, res) => {
+    //req.body.lineID
+    //req.body.offerID
+    //req.body.like
+    //req.body.dislike
+    OfferPost.findOne({ offerID: new mongoose.Types.ObjectId(req.body.offerID) }, (err, data) => {
         if (err) {
             console.log(err);
         }
         else if (!data) {
-            var new_comment = new Comment({ offerID: id });
+            const newOfferPost = new OfferPost({ offerID: new mongoose.Types.ObjectId(req.body.offerID) })
+            if (req.body.like) {
+                newOfferPost.likes = [req.body.lineID];
+                newOfferPost.dislikes = [];
 
-            new_comment.userLikes.push(req.body);
-            new_comment.save().then(() => {
-                res.json("Like Data appended!");
-            }).catch(function (error) {
-                console.log("[Error] " + error);
-            })
+            }
+            if (req.body.dislike) {
+                newOfferPost.dislikes = [req.body.lineID];
+                newOfferPost.likes = [];
+            }
+
+            newOfferPost.save().then(
+                function (updatedDoc, err) {
+                    if (err) {
+                        console.log(err);
+                        res.json(null);
+                    } else {
+                        res.json(updatedDoc);
+                    }
+                }
+            );
         }
         else {
-            var pre_like = data.userLikes.findIndex(el => el.userID === req.body.userID);
-            if (pre_like !== -1) {
-                data.userLikes[pre_like].like = req.body.like;
+            var index = data.likes.findIndex(f => String(f) === req.body.lineID);
+            if (index > -1) {
+                if (!req.body.like) {
+                    data.likes.splice(index, 1);
+                }
             } else {
-                data.userLikes.push(req.body);
+                if (req.body.like) {
+                    data.likes.push(req.body.lineID);
+                }
             }
-            data.save().then(() => {
-                res.json("Like Data appended!");
-            }).catch(function (error) {
-                console.log("[Error] " + error);
-            })
+            index = data.dislikes.findIndex(f => String(f) === req.body.lineID);
+            if (index > -1) {
+                if (!req.body.dislike) {
+                    data.dislikes.splice(index, 1);
+                }
+            } else {
+                if (req.body.dislike) {
+                    data.dislikes.push(req.body.lineID);
+                }
+            }
+
+            data.save().then((updatedDoc, err) => {
+                if (err) {
+                    console.log(err);
+                    res.json(null);
+                } else {
+                    res.json(updatedDoc);
+                }
+            });
         }
     })
 });
 
-router.post('/save-favo-id/:id', (req, res) => {
-    const id = req.params.id;
-    Comment.findOne({ offerID: id }, (err, data) => {
+router.post('/save-favo-by-lineID', (req, res) => {
+    User.findOne({ lineID: req.body.lineID }, (err, data) => {
         if (err) {
             console.log(err);
         }
         else if (!data) {
-            var new_comment = new Comment({ offerID: id });
-
-            new_comment.userFavos.push(req.body);
-            new_comment.save().then(() => {
-                res.json("Like Data appended!");
-            }).catch(function (error) {
-                console.log("[Error] " + error);
+            const newUser = new User({
+                lineID: req.body.lineID,
             })
-        }
-        else {
-            var pre_like = data.userFavos.findIndex(el => el.userID === req.body.userID);
-            if (pre_like !== -1) {
-                data.userFavos[pre_like].favo = req.body.favo;
-            } else {
-                data.userFavos.push(req.body);
+            if (req.body.favo) {
+                newUser.favos = [req.body.offerID]
             }
-            data.save().then(() => {
-                res.json("Like Data appended!");
-            }).catch(function (error) {
-                console.log("[Error] " + error);
-            })
+            newUser.save().then(
+                function (updatedDoc, err) {
+                    if (err) {
+                        console.log(err);
+                        res.json(null);
+                    } else {
+                        res.json(updatedDoc);
+                    }
+                }
+            );
+        }
+        else if (data.favos.length > 0) {
+            const index = data.favos.findIndex(f => String(f) === req.body.offerID);
+            if (index > -1) {
+                if (req.body.favo === false) {
+                    data.favos.splice(index, 1);
+                }
+            } else {
+                if (req.body.favo) {
+                    data.favos.push(req.body.offerID);
+                }
+            }
+            data.save().then((updatedDoc, err) => {
+                if (err) {
+                    console.log(err);
+                    res.json(null);
+                } else {
+                    res.json(updatedDoc);
+                }
+            });
+        } else {
+            res.json(null);
         }
     })
 });
