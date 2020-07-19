@@ -9,7 +9,7 @@ import UserComment from '../../components/UserComment';
 import UserLeaveComment from '../../components/UserLeaveComment';
 import UserAction from '../../components/UserAction';
 import axios from 'axios';
-
+const mongoose = require('mongoose')
 // Liff
 const liff = window.liff;
 
@@ -80,9 +80,9 @@ class ViewPage extends Component {
             type: type
         })
 
-        liff.init({ liffId: '1654394004-OGgr6yb8' }).then(() => {
+        liff.init({ liffId: '1654462018-MxJjE0wq' }).then(() => {
             if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: (`https://share.cardbo.info/?id=${id}?type=${type}`) });
+                liff.login({ redirectUri: (`https://share.cardbo.info/?id=${id}`) });
             }
         }).then(
             () => liff.getOS()
@@ -98,8 +98,8 @@ class ViewPage extends Component {
                     lineID: profile.userId,
                     displayName: profile.displayName,
                     userImage: profile.pictureUrl,
-                }).then((res) => {
-                    if (res.data) {
+                }).catch(err => console.log(err)).then((res) => {
+                    if (res && res.data) {
                         this.setState({ userData: res.data });
                     }
                     var new_userAction = this.state.userAction;
@@ -111,8 +111,8 @@ class ViewPage extends Component {
                 axios.post('/api/get-offer-by-id-and-type', {
                     id: id,
                     type: type
-                }).then((res) => {
-                    if (res.data) {
+                }).catch(err => console.log(err)).then((res) => {
+                    if (res && res.data) {
                         this.setState({ offerData: res.data, validData: true });
                     }
                     this.setState({ loading_offer: false });
@@ -121,33 +121,9 @@ class ViewPage extends Component {
                 axios.post('/api/get-offer-post-by-id-and-type', {
                     id: id,
                     type: type
-                }).then((res) => {
-                    if (res.data) {
-                        this.setState({ offerPost: res.data, offerPostComments: res.data.comments.sort((a, b) => b.time - a.time), loading_comment: false }, () => {
-                            for (var i = 0; i < res.data.comments.length; ++i) {
-                                axios.post('/api/get-user-by-lineID', {
-                                    lineID: res.data.comments[i].lineID,
-                                }).then((res2) => {
-                                    if (res2.data) {
-                                        this.setState(prevState => {
-                                            const list = prevState.offerPostComments.map((item, j) => {
-                                                if (j === i) {
-                                                    item.displayName = res2.data.displayName;
-                                                    item.userImage = res2.data.userImage;
-                                                    item.time = new Date(item.time)
-                                                    return item;
-                                                } else {
-                                                    return item;
-                                                }
-                                            });
-                                            return {
-                                                offerPostComments: list,
-                                            };
-                                        });
-                                    }
-                                })
-                            }
-                        });
+                }).catch(err => console.log(err)).then((res) => {
+                    if (res && res.data) {
+                        this.setState({ offerPost: res.data, offerPostComments: res.data.comments.sort((a, b) => new Date(b.time) - new Date(a.time)), loading_comment: false }, () => this.loadComments());
                         var new_userAction = this.state.userAction;
                         new_userAction.like = res.data.likes.find(l => l === profile.userId) !== undefined;
                         new_userAction.dislike = res.data.dislikes.find(l => l === profile.userId) !== undefined;
@@ -225,40 +201,83 @@ class ViewPage extends Component {
     handleSendCommend = (text) => {
         const d = new Date();
         const s = d.toISOString();
-
-        this.setState(prevState => ({
-            comments: [{
-                displayName: prevState.userData.displayName,
-                lineID: prevState.userData.userID,
-                userImage: prevState.userData.userImage,
+        axios.post('/api/append-comment-by-offerID', {
+            offerID: this.state.id,
+            new_comment: {
+                displayName: this.state.userData.displayName,
+                lineID: this.state.userData.lineID,
+                userImage: this.state.userData.userImage,
                 content: text,
                 showStatus: true,
                 time: d
-            },
-            ...prevState.comments]
-        }))
+            }
+        }).then((res) => {
+            if (res && res.data) {
+                res.data.time = new Date(res.data.time)
+                this.setState(prevState => ({
+                    offerPostComments: [
+                        {
+                            _id: res.data._id,
+                            displayName: this.state.userData.displayName,
+                            lineID: res.data.lineID,
+                            userImage: this.state.userData.userImage,
+                            content: res.data.content,
+                            showStatus: true,
+                            time: new Date(res.data.time)
+                        }, ...prevState.offerPostComments]
+                }))
+            }
+        });
+    }
 
-        fetch('/api/append-comment-id/' + this.state.id, {
-            method: 'POST',
-            body: JSON.stringify({
-                new_comments: {
-                    displayName: this.state.userData.displayName,
-                    lineID: this.state.userData.userID,
-                    userImage: this.state.userData.userImage,
-                    content: text,
-                    showStatus: true,
-                    time: s
+    loadComments = () => {
+        for (var i = 0; i < this.state.offerPostComments.length; ++i) {
+            axios.post('/api/get-comment-user-by-lineID', {
+                lineID: this.state.offerPostComments[i].lineID,
+                index: i
+            }).catch(err => console.log(err)).then((res2) => {
+                if (res2 && res2.data) {
+                    this.setState(prevState => {
+                        const list = prevState.offerPostComments.map((item, j) => {
+                            if (j === res2.data.index) {
+                                item.displayName = res2.data.user.displayName;
+                                item.userImage = res2.data.user.userImage;
+                                item.time = new Date(item.time)
+                                return item;
+                            } else {
+                                return item;
+                            }
+                        });
+                        return {
+                            offerPostComments: list,
+                        };
+                    });
                 }
-            }),
-            headers: new Headers({
-                'Content-Type': 'application/json'
             })
-        }).catch(function (error) {
-            console.log("[Error] " + error);
-        })
-        // .then(
-        //     res => res.json()
-        // )
+        }
+    }
+
+    handleDeleteComment = (id) => {
+        var new_offerPostComments = this.state.offerPostComments.map(item => {
+            if (item._id === id && this.state.userData.lineID === item.lineID) {
+                item.showStatus = false;
+                return item
+            } else {
+                return item
+            }
+        });
+
+        this.setState({ offerPostComments: new_offerPostComments });
+        axios.post('/api/delete-comment-by-offerID-and-commentID', {
+            offerID: this.state.id,
+            commentID: id,
+            lineID: this.state.userData.lineID
+        }).catch(err => console.log(err)).then((res) => {
+            if (res && res.data) {
+                // console.log(res.data)
+                // this.setState({ offerPostComments: res.data.comments.sort((a, b) => b.time - a.time) }, () => this.loadComments());
+            }
+        });
     }
 
     render() {
@@ -276,7 +295,6 @@ class ViewPage extends Component {
             );
         }
         else {
-
             return (
                 <div className={classes.root}>
                     <Card className={classes.contentHolder}>
@@ -312,13 +330,15 @@ class ViewPage extends Component {
                     </div>
 
                     <div className={classes.commentHolder}>
-                        {this.state.offerPostComments.map((i, index) => (
+                        {this.state.offerPostComments.filter(c => c.showStatus === true).map((i, index) => (
                             <UserComment
                                 key={`comment-${index}`}
                                 userName={i.displayName}
                                 userImage={i.userImage}
                                 content={i.content}
                                 time={i.time}
+                                id={i._id}
+                                handleDeleteComment={this.handleDeleteComment}
                             />
                         ))}
                     </div>

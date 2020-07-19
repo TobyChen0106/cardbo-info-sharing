@@ -14,8 +14,9 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
 import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-
+import Menu from '@material-ui/core/Menu';
 import "./UserComment.css"
 
 
@@ -74,7 +75,9 @@ class UserComment extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            openTimeToolTip: false
+            openTimeToolTip: false,
+            anchorEl: null,
+            openMore: false
         }
     }
 
@@ -83,6 +86,19 @@ class UserComment extends Component {
         setTimeout(function () { this.setState({ openTimeToolTip: false }) }.bind(this), 1500);
     }
 
+    handleClickMore = (e) => {
+        e.preventDefault();
+        this.setState({ openMore: true, anchorEl: e.currentTarget })
+    }
+
+    handleMoreClose = () => {
+        this.setState({ openMore: false })
+    }
+    handleDeleteComment = (e) =>{
+        e.preventDefault();
+        this.setState({ openMore: false })
+        this.props.handleDeleteComment(this.props.id)
+    }
     render() {
         const { classes } = this.props;
 
@@ -92,24 +108,6 @@ class UserComment extends Component {
             </Tooltip>
         )
         return (
-
-            // <Card className={classes.root}>
-            //     <div className={classes.header}>
-            //         <div className={classes.avatarTitle} onClick={this.onclickAvatar}>
-            //             <Avatar className={classes.avatar} src={this.props.userImage} />
-
-            //             <div className={classes.titleHolder}>
-            //                 <div className={classes.subtitle} onClick={this.setTimeToolTip}>
-            //                     {`${this.props.userName}‧`}
-            //                     <ReactTimeAgo date={this.props.time} container={TooltipContainer} tooltip={false} open={this.state.openTimeToolTip} />
-            //                 </div>
-            //                 <div className={classes.title}>
-            //                     {`${this.props.content}`}
-            //                 </div>
-            //             </div>
-            //         </div>
-            //     </div>
-            // </Card>
             <>
                 <ListItem alignItems="flex-start">
                     <ListItemAvatar>
@@ -150,9 +148,26 @@ class UserComment extends Component {
                         }
                     />
                     <div className={classes.moreVertIcon}>
-                        <IconButton aria-label="settings">
+                        <IconButton aria-label="settings" onClick={this.handleClickMore}>
                             <MoreVertIcon />
                         </IconButton>
+                        <Menu
+                            id="long-menu"
+                            anchorEl={this.state.anchorEl}
+                            keepMounted
+                            open={this.state.openMore}
+                            onClose={this.handleMoreClose}
+                            PaperProps={{
+                                style: {
+                                    width: '30vw',
+                                    marginRight: "10vw"
+                                }
+                            }}
+                        >
+                            <Button fullWidth={true} onClick={this.handleDeleteComment}>
+                                刪除留言
+                            </Button>
+                        </Menu>
                     </div>
                 </ListItem>
                 <Divider />

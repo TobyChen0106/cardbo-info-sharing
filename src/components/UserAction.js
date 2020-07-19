@@ -176,7 +176,7 @@ class UserAction extends Component {
                             control={<LikeCheckbox icon={<ThumbDown style={{ fontSize: 30 }} />} checkedIcon={<ThumbDown style={{ fontSize: 30 }} />} name="checkedLike" checked={this.props.dislike_checked} />}
                         />
                     </div>
-                    <LineShareButton url={"https://share.cardbo.info/"+this.props.id}>
+                    <LineShareButton url={"https://share.cardbo.info/?id="+this.props.id}>
                         <FormControlLabel
                             label="分享"
                             labelPlacement="bottom"
