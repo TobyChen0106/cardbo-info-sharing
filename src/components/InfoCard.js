@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import ReportIcon from '@material-ui/icons/Report';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import TextField from '@material-ui/core/TextField';
@@ -35,7 +36,7 @@ const useStyles = (theme) => ({
         fontFamily: "cwTeXYen",
         margin: "0.5rem",
         position: 'relative',
-        
+
     },
     avatar: {
         backgroundColor: "#0058a3"
@@ -57,9 +58,9 @@ const useStyles = (theme) => ({
         width: '50%',
     },
     textOverflow: {
-        width:'100%',
+        width: '100%',
         'text-overflow': 'ellipsis',
-        'overflow': 'hidden', 
+        'overflow': 'hidden',
     },
 
 });
@@ -105,7 +106,7 @@ class InfoCard extends Component {
         this.setState(changedState);
     }
 
-    settingOnClick = (event)=>{
+    settingOnClick = (event) => {
         event.preventDefault();
         console.log('settingOnClick');
     }
@@ -145,8 +146,10 @@ class InfoCard extends Component {
             <Card className={classes.root} >
                 <CardHeader
                     action={
-                        <IconButton aria-label="settings" onClick={this.settingOnClick}>
-                            <MoreVertIcon />
+                        <IconButton aria-label="settings">
+                            <Link to="https://line.me/R/ti/p/%40709wwxmw" >
+                                <ReportIcon />
+                            </Link>
                         </IconButton>
                     }
                     titleTypographyProps={{ variant: 'body1' }}
@@ -157,7 +160,7 @@ class InfoCard extends Component {
                 <CardContent className={classes.content}>
                     <div className={classes.contentContainer}>
                         <div className={classes.mainInfo}>
-                            <Typography  variant="body2" color="textSecondary" component="p" >
+                            <Typography variant="body2" color="textSecondary" component="p" >
                                 {`${this.props.offerID}`}
                             </Typography>
                             <Typography className={classes.textOverflow} variant="body2" color="textSecondary" component="p">
@@ -174,7 +177,7 @@ class InfoCard extends Component {
                             </Typography>
                         </div>
                     </div>
-                    <Typography variant="body2" color="textSecondary" component="p"  align="left">
+                    <Typography variant="body2" color="textSecondary" component="p" align="left">
                         {`${this.props.expiration.beginDate} - ${this.props.expiration.endDate}`}
                     </Typography>
                 </CardContent>

@@ -6,6 +6,7 @@ import ContentMarkdown from '../../components/ContentMarkdown';
 import "./InfoCard.css"
 import ReactLoading from 'react-loading';
 import UserComment from '../../components/UserComment';
+import Divider from '@material-ui/core/Divider';
 import UserLeaveComment from '../../components/UserLeaveComment';
 import UserAction from '../../components/UserAction';
 import axios from 'axios';
@@ -30,6 +31,9 @@ const useStyles = (theme) => ({
     },
     commentHolder: {
         padding: "5vw",
+    },
+    disclaimer: {
+        margin: "5vw",
     }
 });
 
@@ -200,7 +204,6 @@ class ViewPage extends Component {
 
     handleSendCommend = (text) => {
         const d = new Date();
-        const s = d.toISOString();
         axios.post('/api/append-comment-by-offerID', {
             offerID: this.state.id,
             new_comment: {
@@ -209,7 +212,7 @@ class ViewPage extends Component {
                 userImage: this.state.userData.userImage,
                 content: text,
                 showStatus: true,
-                time: d
+                time: d.toISOString()
             }
         }).then((res) => {
             if (res && res.data) {
@@ -341,6 +344,10 @@ class ViewPage extends Component {
                                 handleDeleteComment={this.handleDeleteComment}
                             />
                         ))}
+                    </div>
+                    <Divider />
+                    <div className={classes.disclaimer}>
+                        【免責聲明】卡伯呈現之信用卡現金回饋優惠資料取自各家業者官網，不保證即時更新、完全正確，實際優惠情況敬請參考詳細優惠資訊處提供之官網連結。若優惠資訊不慎疏漏造成您的任何不便或間接損害，本公司深表歉意然恕不負責。
                     </div>
                 </div>
             )

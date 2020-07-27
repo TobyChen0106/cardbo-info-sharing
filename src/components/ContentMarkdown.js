@@ -17,8 +17,9 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-
+import ReportIcon from '@material-ui/icons/Report';
 import ReactMarkdown from 'react-markdown';
+import { Link } from "react-router-dom";
 import "./ContentMarkdown.css"
 
 
@@ -132,7 +133,9 @@ class ContentMarkdown extends Component {
                     </div>
                     <div className={classes.moreVertIcon}>
                         <IconButton aria-label="settings">
-                            <MoreVertIcon />
+                            <a href="https://line.me/R/ti/p/%40709wwxmw" >
+                                <ReportIcon />
+                            </a>
                         </IconButton>
                     </div>
 
