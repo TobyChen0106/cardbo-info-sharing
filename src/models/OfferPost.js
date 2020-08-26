@@ -9,7 +9,7 @@ const commentSchema = new Schema({
 })
 
 const OfferPostSchema = new Schema({
-    offerID: mongoose.ObjectId,
+    offerID: String,
     comments: [commentSchema],
     likes: [String],
     dislikes: [String],

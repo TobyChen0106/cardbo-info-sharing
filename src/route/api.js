@@ -10,14 +10,14 @@ const Store = require('../models/Store');
 const OfferPost = require("../models/OfferPost");
 
 router.post('/append-comment-by-offerID', (req, res) => {
-    if (mongoose.Types.ObjectId.isValid(req.body.offerID)) {
-        OfferPost.findOne({ offerID: new mongoose.Types.ObjectId(req.body.offerID) }, (err, data) => {
+    if (req.body.offerID) {
+        OfferPost.findOne({ offerID: req.body.offerID }, (err, data) => {
             if (err) {
                 console.log(err);
                 res.json(null);
             }
             else if (!data) {
-                const newOfferPost = new OfferPost({ offerID: new mongoose.Types.ObjectId(req.body.offerID) })
+                const newOfferPost = new OfferPost({ offerID: req.body.offerID })
                 newOfferPost.comments = [req.body.new_comment];
                 newOfferPost.save().then(
                     function (updatedDoc, err) {
@@ -48,14 +48,14 @@ router.post('/append-comment-by-offerID', (req, res) => {
 });
 
 router.post('/save-like-by-lineID', (req, res) => {
-    if (mongoose.Types.ObjectId.isValid(req.body.offerID)) {
-        OfferPost.findOne({ offerID: new mongoose.Types.ObjectId(req.body.offerID) }, (err, data) => {
+    if (req.body.offerID) {
+        OfferPost.findOne({ offerID: req.body.offerID }, (err, data) => {
             if (err) {
                 console.log(err);
                 res.json(null);
             }
             else if (!data) {
-                const newOfferPost = new OfferPost({ offerID: new mongoose.Types.ObjectId(req.body.offerID) })
+                const newOfferPost = new OfferPost({ offerID: req.body.offerID })
                 if (req.body.like) {
                     newOfferPost.likes = [req.body.lineID];
                     newOfferPost.dislikes = [];
@@ -222,20 +222,20 @@ router.post('/get-comment-user-by-lineID', (req, res) => {
 router.post('/get-offer-by-id-and-type', (req, res) => {
     const id = req.body.id;
     const type = req.body.type;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-        OfferData.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err1, offerdata) => {
+    if (id) {
+        OfferData.findOne({ _id: id }, (err1, offerdata) => {
             if (err1) {
                 console.log(err1);
                 res.json(null);
             }
             else if (!offerdata) {
-                OfferDataDigital.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err2, offerdatanalog) => {
+                OfferDataDigital.findOne({ _id: id }, (err2, offerdatanalog) => {
                     if (err2) {
                         console.log(err2);
                         res.json(null);
                     }
                     else if (!offerdatanalog) {
-                        OfferDataAnalog.findOne({ _id: new mongoose.Types.ObjectId(id) }, (err3, offerdadigital) => {
+                        OfferDataAnalog.findOne({ _id: id }, (err3, offerdadigital) => {
                             if (err3) {
                                 console.log(err3);
                                 res.json(null);
@@ -266,8 +266,8 @@ router.post('/get-offer-by-id-and-type', (req, res) => {
 router.post('/get-offer-post-by-id-and-type', (req, res) => {
     const id = req.body.id;
     const type = req.body.type;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-        OfferPost.findOne({ offerID: new mongoose.Types.ObjectId(id) }, (err, data) => {
+    if (id) {
+        OfferPost.findOne({ offerID: id }, (err, data) => {
             if (err) {
                 console.log(err);
                 res.json(null);
@@ -289,8 +289,8 @@ router.post('/delete-comment-by-offerID-and-commentID', (req, res) => {
     const id = req.body.offerID;
     const commentID = req.body.commentID;
 
-    if (mongoose.Types.ObjectId.isValid(id)) {
-        OfferPost.findOne({ offerID: new mongoose.Types.ObjectId(id) }, (err1, offerpost) => {
+    if (id) {
+        OfferPost.findOne({ offerID: id }, (err1, offerpost) => {
             if (err1) {
                 console.log(err1);
                 res.json(null);

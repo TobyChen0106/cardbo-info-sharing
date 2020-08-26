@@ -2,9 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const OfferDataSchema = new Schema({
+    _id: String,
     OfferName: String,
-    OfferCards: [mongoose.ObjectId],
-    OfferPays: [mongoose.ObjectId],
+    OfferCards: [String],
+    OfferPays: [String],
     OfferPlaces: [String],
     Tags: [String],
     Note: String,

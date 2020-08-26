@@ -2,9 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const OfferDataAnalogSchema = new Schema({
+    _id: String,
     OfferName: String,
-    OfferCards: [mongoose.ObjectId],
-    OfferPays: [mongoose.ObjectId],
+    OfferCards: [String],
+    OfferPays: [String],
     OfferPlaces: [String],
     Tags: [String],
     Note: String,
@@ -20,4 +21,3 @@ const OfferDataAnalogSchema = new Schema({
 
 const OfferDataAnalog = mongoose.model('OfferDataAnalog', OfferDataAnalogSchema, "OfferData-Analog");
 module.exports = OfferDataAnalog;
-

@@ -2,9 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const PaySchema = new Schema({
+    _id: String,
     PayName: String,
     PayImage: String,
-    TripleOffers: [mongoose.ObjectId]
+    TripleOffers: [String]
 });
 
 const Pay = mongoose.model('Pay', PaySchema, 'MobilePay');
